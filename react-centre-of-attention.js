@@ -28,16 +28,16 @@ class Example extends React.Component {
 
   componentDidMount() {
     var indices = [];
-    pixels.forEach((pixel, index) => {
-      if (pixel === colour) {
-        indices.push(index);
-      }
-    });
     var length = width * height;
     var dp = new Array(length).fill(-1)
     var visited = {};
+    var results = {
+      1: []
+    };
 
-    for (let index of indices) {
+    for (var index = 0; index < length; index++) {
+      if (pixels[index] !== colour) continue;
+
       let top = index - width;
       let right = (index % width) + 1;
       let bottom = index + width;
@@ -46,22 +46,28 @@ class Example extends React.Component {
       if (top < 0 || bottom >= length || left < 0 || right >= width) {
         dp[index] = 1;
         visited[index] = true;
+        results[1].push(index);
         continue;
       }
-  
+
       if (pixels[top] !== colour ||
           pixels[index - 1] !== colour ||
           pixels[bottom] !== colour ||
           pixels[index + 1] !== colour) {
         dp[index] = 1;
         visited[index] = true;
+        results[1].push(index);
+        continue;
       }
+
+      indices.push(index);
     }
 
-    var rest = indices.filter((index) => dp[index] === -1);
-    while (rest.length !== 0) {
+    var maxDepth = 1;
+    while (indices.length !== 0) {
       let newVisited = {};
-      for (let index of rest) {
+      let newIndices = [];
+      for (let index of indices) {
         let top = index - width;
         let right = index + 1;
         let bottom = index + width;
@@ -69,15 +75,22 @@ class Example extends React.Component {
         let depths = [top, right, bottom, left].filter((direction) => !!visited[direction]);
         
         if (depths.length === 0) {
+          newIndices.push(index);
           continue;
         }
 
         depths = depths.map((direction) => dp[direction]);
         dp[index] = Math.min.apply(Math, depths) + 1;
         newVisited[index] = true;
+        maxDepth = dp[index] > maxDepth ? dp[index] : maxDepth;
+        if (results.hasOwnProperty(dp[index])) {
+          results[dp[index]].push(index);
+        } else {
+          results[dp[index]] = [index];
+        }
       }
       Object.assign(visited, newVisited);
-      rest = rest.filter((index) => dp[index] === -1);
+      indices = newIndices;
     }
 
     this.setState({
