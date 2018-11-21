@@ -7,6 +7,9 @@
   <title>Centre of Attention</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    button {
+      margin-bottom: 10px;
+    }
     div {
       margin-bottom: 5px;
     }
@@ -42,21 +45,21 @@
       constructor(props) {
         super(props);
         this.state = {
-          dp: new Array(width * height).fill(-1)
+          dp: new Array(width * height).fill(-1),
+          next: 1
         };
 
         this._worker = new Worker("centre-of-attention.js");
+        this.next = this.next.bind(this);
       }
 
       componentDidMount() {
-        this._worker.postMessage({ width, height, pixels,
-          color: selectedColor,
-          dp: this.state.dp
-        });
-
         const that = this;
         this._worker.onmessage = function(e) {
-          that.setState({ dp: e.data });
+          that.setState({
+            dp: e.data,
+            next: that.state.next + 1
+          });
         }
       }
 
@@ -64,34 +67,45 @@
         this._worker.terminate();
       }
 
+      next() {
+        this._worker.postMessage({ width, height, pixels,
+          color: selectedColor,
+          dp: this.state.dp,
+          next: this.state.next
+        });
+      }
+
       render() {
         return (
           <div>
-            {
-              new Array(height).fill(0).map((item, rowIndex) => {
-                let row = new Array(width).fill(0).map((i, colIndex) => {
-                  let index = rowIndex * width + colIndex;
-                  return (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'inline-block',
-                        lineHeight: '30px',
-                        width: 30,
-                        height: 30,
-                        marginLeft: 5,
-                        background: color[pixels[index]],
-                        textAlign: 'center',
-                        color: 'white',
-                      }}>
-                      {this.state.dp[index]}
-                    </div>
-                  );
-                })
+            <button onClick={this.next}>Next</button>
+            <div>
+              {
+                new Array(height).fill(0).map((item, rowIndex) => {
+                  let row = new Array(width).fill(0).map((i, colIndex) => {
+                    let index = rowIndex * width + colIndex;
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'inline-block',
+                          lineHeight: '30px',
+                          width: 30,
+                          height: 30,
+                          marginLeft: 5,
+                          background: color[pixels[index]],
+                          textAlign: 'center',
+                          color: 'white',
+                        }}>
+                        {this.state.dp[index]}
+                      </div>
+                    );
+                  })
 
-                return row.concat([<br key={'br' + rowIndex} />]);
-              })
-            }
+                  return row.concat([<br key={'br' + rowIndex} />]);
+                })
+              }
+            </div>
           </div>
         );
       }

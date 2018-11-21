@@ -1,10 +1,11 @@
-function calcMinDepth(width, height, pixels, color, dp) {
-  var indices = [];
+var indices = [];
+var visited = {};
+var results = {
+  1: []
+};
+
+function getBoundary(width, height, pixels, color, dp) {
   var length = width * height;
-  var visited = {};
-  var results = {
-    1: []
-  };
 
   for (var index = 0; index < length; index++) {
     if (pixels[index] !== color) continue;
@@ -33,8 +34,11 @@ function calcMinDepth(width, height, pixels, color, dp) {
 
     indices.push(index);
   }
+}
 
+function calcMinDepth(width, dp) {
   var maxDepth = 1;
+
   while (indices.length !== 0) {
     let newVisited = {};
     let newIndices = [];
@@ -66,7 +70,11 @@ function calcMinDepth(width, height, pixels, color, dp) {
 }
 
 onmessage = function(e) {
-  const { width, height, pixels, color, dp } = e.data;
-  calcMinDepth(width, height, pixels, color, dp);
+  const { width, height, pixels, color, dp, next } = e.data;
+  if (next === 1) {
+    getBoundary(width, height, pixels, color, dp);
+  } else {
+    calcMinDepth(width, dp);
+  }
   postMessage(dp);
 }
