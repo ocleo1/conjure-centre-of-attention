@@ -39,34 +39,32 @@ function getBoundary(width, height, pixels, color, dp) {
 function calcMinDepth(width, dp) {
   var maxDepth = 1;
 
-  while (indices.length !== 0) {
-    let newVisited = {};
-    let newIndices = [];
-    for (let index of indices) {
-      let top = index - width;
-      let right = index + 1;
-      let bottom = index + width;
-      let left = index - 1;
-      let depths = [top, right, bottom, left].filter((direction) => !!visited[direction]);
-      
-      if (depths.length === 0) {
-        newIndices.push(index);
-        continue;
-      }
+  let newVisited = {};
+  let newIndices = [];
+  for (const index of indices) {
+    const top = index - width;
+    const right = index + 1;
+    const bottom = index + width;
+    const left = index - 1;
+    let depths = [top, right, bottom, left].filter((direction) => !!visited[direction]);
 
-      depths = depths.map((direction) => dp[direction]);
-      dp[index] = Math.min.apply(Math, depths) + 1;
-      newVisited[index] = true;
-      maxDepth = dp[index] > maxDepth ? dp[index] : maxDepth;
-      if (results.hasOwnProperty(dp[index])) {
-        results[dp[index]].push(index);
-      } else {
-        results[dp[index]] = [index];
-      }
+    if (depths.length === 0) {
+      newIndices.push(index);
+      continue;
     }
-    Object.assign(visited, newVisited);
-    indices = newIndices;
+
+    depths = depths.map((direction) => dp[direction]);
+    dp[index] = Math.min.apply(Math, depths) + 1;
+    newVisited[index] = true;
+    maxDepth = dp[index] > maxDepth ? dp[index] : maxDepth;
+    if (results.hasOwnProperty(dp[index])) {
+      results[dp[index]].push(index);
+    } else {
+      results[dp[index]] = [index];
+    }
   }
+  Object.assign(visited, newVisited);
+  indices = newIndices;
 }
 
 onmessage = function(e) {
